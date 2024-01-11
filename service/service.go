@@ -43,6 +43,12 @@ type DepositInput struct {
 	Deposit_amount float32 `json:"deposit_amount" validate:"required"`
 }
 
+type PaymentInput struct {
+	Payment_method string `json:"payment_method" validate:"oneof=deposit xendit"`
+	User_id        int    `json:"user_id"`
+	Booking_id     int    `json:"booking_id"`
+}
+
 // xendit objects
 type Customer struct {
 	Name  string `json:"name"`

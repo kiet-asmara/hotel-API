@@ -61,6 +61,8 @@ func main() {
 	booking := e.Group("/bookings")
 	booking.Use(utils.AuthMiddleware)
 	booking.GET("", handler.ShowBookingHandler)
+	booking.POST("/:id", handler.PayBookingHandler)
+	booking.GET("/payments", handler.PaymentRefreshHandler)
 
 	// payment := e.Group("/payments")
 

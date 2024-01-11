@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"hotel/helpers"
 	"hotel/model"
 	"hotel/utils"
@@ -16,15 +15,39 @@ func (s *Service) ShowUserBookings(userID int) ([]model.Booking, error) {
 		return nil, utils.NewError(utils.ErrInternalFailure, err)
 	}
 
-	newBookings := []model.Booking{}
-	for _, v := range bookings {
-		fmt.Println(v)
-		bookingNoTZ, err := helpers.RemoveTimezoneBooking(v) // error omitted because database always has correct format
-		if err != nil {
-			return nil, utils.NewError(utils.ErrInternalFailure, err)
-		}
-		newBookings = append(newBookings, bookingNoTZ)
+	return bookings, nil
+}
+
+func (s *Service) BookRoom(input BookingInput) (model.Booking, error) {
+	// get room info
+	room := model.Room{}
+	err := s.DB.Model(model.Room{}).Preload("Room_type").First(&room, input.Room_id).Error
+	if err != nil {
+		return model.Booking{}, utils.NewError(utils.ErrInternalFailure, err)
 	}
 
-	return newBookings, nil
+	// calculate total price
+	days, err := helpers.DatesBetween(input.Checkin_date, input.Checkout_date)
+	if err != nil {
+		return model.Booking{}, utils.NewError(utils.ErrBadRequest, err) // bad request because date is not correct format
+	}
+
+	totalPrice := days * room.Room_type.Price_per_night
+
+	// insert booking
+	booking := model.Booking{
+		User_id:       input.User_id,
+		Room_id:       input.Room_id,
+		Checkin_date:  input.Checkin_date,
+		Checkout_date: input.Checkout_date,
+		Total_price:   totalPrice,
+		Paid:          false,
+	}
+
+	err = s.DB.Omit("booking_id").Create(&booking).Error
+	if err != nil {
+		return model.Booking{}, utils.NewError(utils.ErrInternalFailure, err)
+	}
+
+	return booking, nil
 }

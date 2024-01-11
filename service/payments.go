@@ -6,107 +6,173 @@ import (
 	"hotel/model"
 	"hotel/utils"
 	"strconv"
+	"time"
 
 	"gorm.io/gorm"
 )
 
-func (s *Service) Deposit(amount float32, userID int) (XenditResponse, error) {
-	// make customer
-	user := model.User{}
+func (s *Service) PayBooking(input PaymentInput) (model.Payment, error) {
+	if err := utils.Validate.Struct(input); err != nil {
+		return model.Payment{}, utils.NewError(utils.ErrFailedBind, err)
+	}
 
-	err := s.DB.Model(model.User{}).First(&user, userID).Error
+	// get total price
+	var booking model.Booking
+	err := s.DB.Model(model.Booking{}).First(&booking, input.Booking_id).Error
 	if err != nil {
-		return XenditResponse{}, utils.NewError(utils.ErrInternalFailure, err)
+		return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
 	}
 
-	id := strconv.Itoa(userID)
-
-	// create request payload for invoice creation
-	req := XenditRequest{
-		External_id:      id,
-		Amount:           amount,
-		Description:      "Deposit invoice for " + user.Full_name,
-		Invoice_duration: 86400,
-		Customer: Customer{
-			Name:  user.Full_name,
-			Email: user.Email},
-		Items: []Item{},
-	}
-
-	resp, err := CreateInvoice(req)
+	// get user info
+	var user model.User
+	err = s.DB.Model(model.User{}).First(&user, input.User_id).Error
 	if err != nil {
-		return XenditResponse{}, utils.NewError(utils.ErrInternalFailure, err)
+		return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
 	}
 
-	// insert deposit info to DB
-	deposit := model.Deposit{
-		User_id:    userID,
-		Amount:     resp.Amount,
-		Status:     resp.Status,
-		Invoice_id: resp.Id,
-		URL:        resp.Invoice_url,
-	}
-	result := s.DB.Omit("Deposit_id").Create(&deposit)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrDuplicatedKey) { // broken, need pgconn
-			return XenditResponse{}, utils.NewError(utils.ErrBadRequest, err)
+	if input.Payment_method == "deposit" {
+
+		// deduct from user deposit
+		depositLeft := user.Deposit_amount - booking.Total_price
+		if depositLeft < 0 {
+			return model.Payment{}, utils.NewError(utils.ErrBadRequest, fmt.Errorf("insufficient balance"))
 		}
-		return XenditResponse{}, utils.NewError(utils.ErrInternalFailure, err)
+		user.Deposit_amount = depositLeft
+
+		// transaction begin
+		tx := s.DB.Begin()
+
+		err = tx.Model(&user).Update("deposit_amount", depositLeft).Error
+		if err != nil {
+			tx.Rollback()
+			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
+		}
+
+		// update booking status
+		err = tx.Model(&booking).Update("paid", true).Error
+		if err != nil {
+			tx.Rollback()
+			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
+		}
+
+		// create payment data
+		payment := model.Payment{
+			Booking_id:     input.Booking_id,
+			Payment_date:   time.Now().Format("2006-01-02"),
+			Payment_method: input.Payment_method,
+			Amount:         booking.Total_price,
+			Status:         "PAID",
+		}
+
+		err = tx.Omit("Payment_id").Create(&payment).Error
+		if err != nil {
+			tx.Rollback()
+			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
+		}
+
+		tx.Commit()
+
+		return payment, nil
 	}
 
-	// return resp object
-	return resp, nil
+	if input.Payment_method == "xendit" {
+		// create invoice
+		req := XenditRequest{
+			External_id:      strconv.Itoa(input.Booking_id),
+			Amount:           booking.Total_price,
+			Description:      "Payment invoice for " + user.Full_name,
+			Invoice_duration: 86400,
+			Customer: Customer{
+				Name:  user.Full_name,
+				Email: user.Email},
+			Items: []Item{}, // ga sempet query utk dapetin room type
+		}
+		resp, err := createInvoice(req)
+		if err != nil {
+			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
+		}
+
+		// create payment data
+		payment := model.Payment{
+			Booking_id:     input.Booking_id,
+			Payment_date:   "-infinity",
+			Payment_method: input.Payment_method,
+			Amount:         booking.Total_price,
+			Status:         "PENDING",
+			Invoice_id:     resp.Id,
+			URL:            resp.Invoice_url,
+		}
+
+		err = s.DB.Omit("Payment_id").Create(&payment).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) { // broken, need pgconn
+				return model.Payment{}, utils.NewError(utils.ErrBadRequest, err)
+			}
+			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
+		}
+
+		return payment, nil
+
+	}
+
+	return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
 }
 
-func (s *Service) DepositRefresh(userID int) ([]model.Deposit, float32, error) {
-	// get all deposits
-	deposits := []model.Deposit{}
+func (s *Service) PaymentRefresh(userID int) ([]model.Payment, error) {
+	// get all payments
+	payments := []model.Payment{}
 
-	err := s.DB.Model(model.Deposit{}).Where("User_id = ?", userID).Find(&deposits).Error
+	err := s.DB.Raw(`SELECT * FROM payments
+		INNER JOIN bookings ON payments.booking_id = bookings.booking_id
+		WHERE bookings.user_id = ?;`, userID).Scan(&payments).Error
 	if err != nil {
-		return nil, 0, utils.NewError(utils.ErrInternalFailure, err)
+		return nil, utils.NewError(utils.ErrInternalFailure, err)
 	}
-	if len(deposits) == 0 {
-		return nil, 0, utils.NewError(utils.ErrNotFound, fmt.Errorf("you have no deposits"))
+	if len(payments) == 0 {
+		return nil, utils.NewError(utils.ErrNotFound, fmt.Errorf("you have no payments"))
 	}
 
 	// get user info
 	var user model.User
 	err = s.DB.Model(model.User{}).First(&user, userID).Error
 	if err != nil {
-		return nil, 0, utils.NewError(utils.ErrInternalFailure, err)
+		return nil, utils.NewError(utils.ErrInternalFailure, err)
 	}
 
-	totalDeposit := user.Deposit_amount
-
-	for _, v := range deposits {
+	for _, v := range payments {
 		if v.Status == "PENDING" {
-			resp, err := GetInvoice(v.Invoice_id)
+			resp, err := getInvoice(v.Invoice_id)
 			if err != nil {
-				return nil, 0, utils.NewError(utils.ErrInternalFailure, err)
+				return nil, utils.NewError(utils.ErrInternalFailure, err)
 			}
 			if resp.Status == "SETTLED" || resp.Status == "PAID" {
-				// update deposit history
-				err := s.DB.Model(model.Deposit{}).Where("deposit_id = ?", v.Deposit_id).Update("status", "PAID").Error
+				tx := s.DB.Begin()
+
+				// update payment
+				err := tx.Model(model.Payment{}).Where("payment_id = ?", v.Payment_id).Updates(model.Payment{Status: "PAID", Payment_date: time.Now().Format("2006-01-02")}).Error
 				if err != nil {
-					return nil, 0, utils.NewError(utils.ErrInternalFailure, err)
+					tx.Rollback()
+					return nil, utils.NewError(utils.ErrInternalFailure, err)
 				}
-				totalDeposit += v.Amount
+
+				// update booking status
+				err = s.DB.Model(model.Booking{}).Where("booking_id = ?", v.Booking_id).Update("paid", true).Error
+				if err != nil {
+					tx.Rollback()
+					return nil, utils.NewError(utils.ErrInternalFailure, err)
+				}
+				tx.Commit()
 			}
 		}
 	}
 
-	if totalDeposit != user.Deposit_amount {
-		err := s.DB.Model(&user).Update("deposit_amount", totalDeposit).Error
-		if err != nil {
-			return nil, 0, utils.NewError(utils.ErrInternalFailure, err)
-		}
-
-		// query deposits again to see updated status
-		err = s.DB.Model(model.Deposit{}).Where("User_id = ?", userID).Find(&deposits).Error
-		if err != nil {
-			return nil, 0, utils.NewError(utils.ErrInternalFailure, err)
-		}
+	// query payments again to see updated status
+	err = s.DB.Raw(`SELECT * FROM payments
+		INNER JOIN bookings ON payments.booking_id = bookings.booking_id
+		WHERE bookings.user_id = ?;`, userID).Scan(&payments).Error
+	if err != nil {
+		return nil, utils.NewError(utils.ErrInternalFailure, err)
 	}
-	return deposits, totalDeposit, nil
+
+	return payments, nil
 }

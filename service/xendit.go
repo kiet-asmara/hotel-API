@@ -16,7 +16,7 @@ func basicAuth(username, password string) string {
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
-func CreateInvoice(input XenditRequest) (XenditResponse, error) {
+func createInvoice(input XenditRequest) (XenditResponse, error) {
 	url := "https://api.xendit.co/v2/invoices"
 
 	postBody, _ := json.Marshal(input)
@@ -54,7 +54,7 @@ func CreateInvoice(input XenditRequest) (XenditResponse, error) {
 	return respBody, nil
 }
 
-func GetInvoice(invoiceID string) (XenditResponse, error) {
+func getInvoice(invoiceID string) (XenditResponse, error) {
 	url := fmt.Sprintf("https://api.xendit.co/v2/invoices/%s", invoiceID)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)

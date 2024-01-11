@@ -28,7 +28,7 @@ CREATE TABLE bookings (
     Checkin_date DATE NOT NULL,
     Checkout_date DATE NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
-    paid BOOL NOT NULL DEFAULT FALSE -- remove?
+    paid BOOL NOT NULL DEFAULT FALSE 
 ); -- tambah payment status
 
 CREATE TABLE rooms (
@@ -48,7 +48,12 @@ CREATE TABLE room_types (
 CREATE TABLE payments (
     payment_id SERIAL PRIMARY KEY,
     booking_id INT NOT NULL REFERENCES bookings(booking_id),
-    payment_date DATE NOT NULL
+    payment_date DATE,
+    payment_method varchar(10) NOT NULL,
+    amount  DECIMAL(10, 2) NOT NULL,
+    status varchar(10) NOT NULL,
+    invoice_id VARCHAR(255) UNIQUE,
+    url VARCHAR(255) UNIQUE 
 );
 
 INSERT INTO user_types (type_name) VALUES
