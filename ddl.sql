@@ -7,6 +7,15 @@ CREATE TABLE users (
     deposit_amount DECIMAL(10, 2) NOT NULL CHECK(deposit_amount >= 0) DEFAULT 0
 );
 
+CREATE TABLE deposits (
+    deposit_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id),
+    amount  DECIMAL(10, 2) NOT NULL,
+    status varchar(10) NOT NULL,
+    invoice_id VARCHAR(255) UNIQUE NOT NULL,
+    url VARCHAR(255) UNIQUE NOT NULL
+);
+
 CREATE TABLE user_types (
     type_id SERIAL PRIMARY KEY,
     type_name VARCHAR(255) UNIQUE NOT NULL
@@ -19,15 +28,14 @@ CREATE TABLE bookings (
     Checkin_date DATE NOT NULL,
     Checkout_date DATE NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
-    paid BOOL NOT NULL DEFAULT FALSE
+    paid BOOL NOT NULL DEFAULT FALSE -- remove?
 ); -- tambah payment status
 
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,
     room_type_id INT NOT NULL REFERENCES room_types(room_type_id),
-    location  VARCHAR(10) NOT NULL, -- not added yet
     status BOOL NOT NULL DEFAULT TRUE
-); -- tambah location = 4th floor, query for room type
+);
 
 CREATE TABLE room_types (
     room_type_id SERIAL PRIMARY KEY,

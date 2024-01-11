@@ -49,6 +49,8 @@ func main() {
 	user := e.Group("/users")
 	user.POST("/register", handler.RegisterHandler)
 	user.POST("/login", handler.LoginHandler)
+	user.POST("/deposit", handler.DepositHandler, utils.AuthMiddleware)
+	user.GET("/deposit", handler.DepositRefreshHandler, utils.AuthMiddleware)
 
 	room := e.Group("/rooms")
 	room.Use(utils.AuthMiddleware)
@@ -59,6 +61,8 @@ func main() {
 	booking := e.Group("/bookings")
 	booking.Use(utils.AuthMiddleware)
 	booking.GET("", handler.ShowBookingHandler)
+
+	// payment := e.Group("/payments")
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 

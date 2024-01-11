@@ -40,5 +40,39 @@ type BookingInput struct {
 }
 
 type DepositInput struct {
-	Deposit_amount float32 `json:"deposit"`
+	Deposit_amount float32 `json:"deposit_amount" validate:"required"`
+}
+
+// xendit objects
+type Customer struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type Item struct {
+	Name     string  `json:"name"`
+	Quantity int     `json:"quantity"`
+	Price    float32 `json:"price"`
+}
+
+type XenditRequest struct {
+	External_id      string   `json:"external_id"`
+	Amount           float32  `json:"amount"`
+	Description      string   `json:"description"`
+	Invoice_duration int      `json:"invoice_duration"`
+	Customer         Customer `json:"customer"`
+	Items            []Item   `json:"items"`
+}
+
+type XenditResponse struct {
+	Id          string         `json:"id"`
+	External_id string         `json:"external_id"`
+	User_id     string         `json:"user_id"`
+	Status      string         `json:"status"`
+	Amount      float32        `json:"amount"`
+	Expiry_date string         `json:"expiry_date"`
+	Invoice_url string         `json:"invoice_url"`
+	Customer    map[string]any `json:"customer"`
+	// Created     string         `json:"created"`
+	// Updated     string         `json:"updated"`
 }
