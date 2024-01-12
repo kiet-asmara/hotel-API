@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"hotel/model"
 	"hotel/utils"
 	"strconv"
@@ -25,6 +26,9 @@ func (s *Service) GetAvailableRooms(typeID string) ([]model.Room, error) {
 	if err != nil {
 		return nil, utils.NewError(utils.ErrInternalFailure, err)
 	}
+	if len(rooms) == 0 {
+		return nil, utils.NewError(utils.ErrNotFound, fmt.Errorf("available rooms do not exist"))
+	}
 
 	return rooms, nil
 }
@@ -42,6 +46,9 @@ func (s *Service) CreateRoom(typeID string) (model.Room, error) {
 	err = s.DB.Omit("Room_id").Create(&room).Error
 	if err != nil {
 		return model.Room{}, utils.NewError(utils.ErrInternalFailure, err)
+	}
+	if room.Room_id == 0 {
+		return model.Room{}, utils.NewError(utils.ErrNotFound, fmt.Errorf("room type does not exist"))
 	}
 
 	return room, nil
@@ -72,6 +79,9 @@ func (s *Service) UpdateRoomType(input model.Room_type) (model.Room_type, error)
 	err := s.DB.Save(&input).Error
 	if err != nil {
 		return model.Room_type{}, utils.NewError(utils.ErrInternalFailure, err)
+	}
+	if input.Room_type_id == 0 {
+		return model.Room_type{}, utils.NewError(utils.ErrNotFound, fmt.Errorf("room type does not exist"))
 	}
 
 	return input, nil

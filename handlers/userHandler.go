@@ -13,10 +13,10 @@ import (
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param		 data body model.User true "The input user struct"
-// @Success      201  {object}  model.RegisterResponse
-// @Failure      400  {object}  []utils.ApiError
-// @Failure      500  {object}  utils.ErrorMssg
+// @Param		 data body service.RegisterInput true "The input user struct"
+// @Success      201  {object}  handlers.RegisterResponse
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
 // @Router       /users/register [Post]
 func (h *Handler) RegisterHandler(c echo.Context) error {
 	var input service.RegisterInput
@@ -43,12 +43,12 @@ func (h *Handler) RegisterHandler(c echo.Context) error {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param		 data body model.UserLogin true "The input user struct"
-// @Success      200  {object}  model.LoginResponse
-// @Failure      400  {object}  []utils.ApiError
-// @Failure      401  {object}  utils.ErrorMssg
-// @Failure      500  {object}  utils.ErrorMssg
-// @Router       /api/users/login [Post]
+// @Param		 data body service.LoginInput true "The input user struct"
+// @Success      200  {object}  handlers.LoginResponse
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /users/login [Post]
 func (h *Handler) LoginHandler(c echo.Context) error {
 	var input service.LoginInput
 

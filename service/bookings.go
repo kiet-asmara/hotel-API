@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"hotel/helpers"
 	"hotel/model"
 	"hotel/utils"
@@ -24,6 +25,9 @@ func (s *Service) BookRoom(input BookingInput) (model.Booking, error) {
 	err := s.DB.Model(model.Room{}).Preload("Room_type").First(&room, input.Room_id).Error
 	if err != nil {
 		return model.Booking{}, utils.NewError(utils.ErrInternalFailure, err)
+	}
+	if room.Room_id == 0 {
+		return model.Booking{}, utils.NewError(utils.ErrNotFound, fmt.Errorf("room not found"))
 	}
 
 	// calculate total price

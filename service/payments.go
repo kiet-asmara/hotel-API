@@ -1,15 +1,12 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"hotel/helpers"
 	"hotel/model"
 	"hotel/utils"
 	"strconv"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 func (s *Service) PayBooking(input PaymentInput) (model.Payment, error) {
@@ -114,9 +111,6 @@ func (s *Service) PayBooking(input PaymentInput) (model.Payment, error) {
 
 		err = s.DB.Omit("Payment_id").Create(&payment).Error
 		if err != nil {
-			if errors.Is(err, gorm.ErrDuplicatedKey) { // broken, need pgconn
-				return model.Payment{}, utils.NewError(utils.ErrBadRequest, err)
-			}
 			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
 		}
 

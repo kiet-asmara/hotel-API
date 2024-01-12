@@ -11,6 +11,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary      Get Room Types
+// @Description  Get all room types
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Success      200  {object}  handlers.RoomTyResp
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms [Get]
 func (h *Handler) RoomTypeHandler(c echo.Context) error {
 	roomTypes, err := h.Service.GetRoomTypes()
 	if err != nil {
@@ -23,6 +33,18 @@ func (h *Handler) RoomTypeHandler(c echo.Context) error {
 	})
 }
 
+// @Summary      Get Available Rooms By Type
+// @Description  Get all available rooms by type id
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param ID path int true "Room Type ID"
+// @Success      200  {object}  handlers.RoomResp
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      404  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms/:id [Get]
 func (h *Handler) AvailableRoomHandler(c echo.Context) error {
 	id := c.Param("id")
 
@@ -37,6 +59,19 @@ func (h *Handler) AvailableRoomHandler(c echo.Context) error {
 	})
 }
 
+// @Summary      Book a room
+// @Description  Book room by id
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param		 data body handlers.RoomBookReq true "The input booking struct"
+// @Success      201  {object}  handlers.RoomBookResp
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      404  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms/book [Post]
 func (h *Handler) RoomBookingHandler(c echo.Context) error {
 	// bind user input
 	var input service.BookingInput
@@ -65,6 +100,19 @@ func (h *Handler) RoomBookingHandler(c echo.Context) error {
 	})
 }
 
+// @Summary      Create a room
+// @Description  Create a room
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param ID path int true "Room Type ID"
+// @Success      201  {object}  handlers.RoomResp2
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      404  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms/:id [Post]
 func (h *Handler) CreateRoomHandler(c echo.Context) error {
 	claims, err := helpers.GetClaims(c)
 	if err != nil {
@@ -90,6 +138,18 @@ func (h *Handler) CreateRoomHandler(c echo.Context) error {
 	})
 }
 
+// @Summary      Create a room type
+// @Description  Create a room type
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param		 data body handlers.RoomTypeCreate true "The input room struct"
+// @Success      201  {object}  handlers.RoomResp3
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms/type [Post]
 func (h *Handler) CreateRoomTypeHandler(c echo.Context) error {
 	claims, err := helpers.GetClaims(c)
 	if err != nil {
@@ -119,6 +179,20 @@ func (h *Handler) CreateRoomTypeHandler(c echo.Context) error {
 	})
 }
 
+// @Summary      Update a room type
+// @Description  Update a room type
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param ID path int true "Room Type ID"
+// @Param		 data body handlers.RoomTypeCreate true "The input room struct"
+// @Success      201  {object}  handlers.RoomResp3
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      404  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms/type/:id [Put]
 func (h *Handler) UpdateRoomTypeHandler(c echo.Context) error {
 	claims, err := helpers.GetClaims(c)
 	if err != nil {
@@ -156,6 +230,19 @@ func (h *Handler) UpdateRoomTypeHandler(c echo.Context) error {
 	})
 }
 
+// @Summary      Delete room
+// @Description  Delete a room
+// @Tags         Room
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param ID path int true "Room ID"
+// @Success      201  {object}  handlers.ErrResponse
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      404  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /rooms/:id [Delete]
 func (h *Handler) DeleteRoomHandler(c echo.Context) error {
 	claims, err := helpers.GetClaims(c)
 	if err != nil {

@@ -10,6 +10,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary      Pay Booking By ID
+// @Description  Pay for a booking by ID using deposit or Xendit
+// @Tags         Booking
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Param ID path int true "Booking ID"
+// @Param		 data body handlers.PaymentReq true "The input payment struct"
+// @Success      201  {object}  handlers.PaymentResponse
+// @Failure      400  {object}  handlers.ErrResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /bookings/:id [Post]
 func (h *Handler) PayBookingHandler(c echo.Context) error {
 	claims, err := helpers.GetClaims(c)
 	if err != nil {
@@ -36,12 +49,23 @@ func (h *Handler) PayBookingHandler(c echo.Context) error {
 		return echo.NewHTTPError(apiErr.Status, apiErr.Message)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
+	return c.JSON(http.StatusCreated, echo.Map{
 		"message": "payment record created",
 		"payment": payment,
 	})
 }
 
+// @Summary      Get all payments
+// @Description  Get all user payments
+// @Tags         Booking
+// @Accept       json
+// @Produce      json
+// @Param Authorization header string true "JWT Token"
+// @Success      200  {object}  handlers.PaymentsResponse
+// @Failure      401  {object}  handlers.ErrResponse
+// @Failure      404  {object}  handlers.ErrResponse
+// @Failure      500  {object}  handlers.ErrResponse
+// @Router       /bookings/payments [Get]
 func (h *Handler) PaymentRefreshHandler(c echo.Context) error {
 	claims, err := helpers.GetClaims(c)
 	if err != nil {

@@ -12,9 +12,9 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
-// @title Restful Gym App API
+// @title Restful Hotel App API
 // @version 1.0
-// @description Create workouts & exercises.
+// @description Hotel management system for users and admin.
 
 // @contact.name Kiet Asmara
 // @contact.url http://www.swagger.io/support
