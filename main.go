@@ -6,7 +6,6 @@ import (
 	"hotel/service"
 	"hotel/utils"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -27,10 +26,11 @@ import (
 func main() {
 	e := echo.New()
 
-	err := godotenv.Load()
-	if err != nil {
-		e.Logger.Fatal("Error loading .env file")
-	}
+	// uncomment for local deployment
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	e.Logger.Fatal("Error loading .env file")
+	// }
 
 	db, err := config.InitDB()
 	if err != nil {

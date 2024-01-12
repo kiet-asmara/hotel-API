@@ -71,7 +71,7 @@ INSERT INTO room_types (room_name, description, price_per_night, available_rooms
     ('Regular', 'A normal room', 50.00, 10),
     ('Express', 'A cheap, joint room with bunk beds', 15.00, 5);
 
-INSERT INTO rooms (room_type_id, status) VALUES
+INSERT INTO rooms (room_type_id, available) VALUES
     (1, TRUE),
     (1, TRUE),
     (1, TRUE),
