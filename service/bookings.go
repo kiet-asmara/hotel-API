@@ -10,7 +10,7 @@ func (s *Service) ShowUserBookings(userID int) ([]model.Booking, error) {
 	bookings := []model.Booking{}
 
 	// tambah available rooms count?
-	err := s.DB.Model(model.Booking{}).Find(&bookings).Error
+	err := s.DB.Model(model.Booking{}).Where("user_id = ?", userID).Find(&bookings).Error
 	if err != nil {
 		return nil, utils.NewError(utils.ErrInternalFailure, err)
 	}
@@ -45,6 +45,12 @@ func (s *Service) BookRoom(input BookingInput) (model.Booking, error) {
 	}
 
 	err = s.DB.Omit("booking_id").Create(&booking).Error
+	if err != nil {
+		return model.Booking{}, utils.NewError(utils.ErrInternalFailure, err)
+	}
+
+	// update room
+	err = s.DB.Model(&room).Update("available", false).Error
 	if err != nil {
 		return model.Booking{}, utils.NewError(utils.ErrInternalFailure, err)
 	}

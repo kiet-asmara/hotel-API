@@ -57,14 +57,16 @@ func main() {
 	room.GET("", handler.RoomTypeHandler)
 	room.GET("/:id", handler.AvailableRoomHandler)
 	room.POST("/book", handler.RoomBookingHandler)
+	room.POST("/:id", handler.CreateRoomHandler)
+	room.POST("/type", handler.CreateRoomTypeHandler)
+	room.PUT("/type/:id", handler.UpdateRoomTypeHandler)
+	room.DELETE("/:id", handler.DeleteRoomHandler)
 
 	booking := e.Group("/bookings")
 	booking.Use(utils.AuthMiddleware)
 	booking.GET("", handler.ShowBookingHandler)
 	booking.POST("/:id", handler.PayBookingHandler)
 	booking.GET("/payments", handler.PaymentRefreshHandler)
-
-	// payment := e.Group("/payments")
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 

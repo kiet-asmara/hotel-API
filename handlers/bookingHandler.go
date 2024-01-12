@@ -10,13 +10,13 @@ import (
 
 func (h *Handler) ShowBookingHandler(c echo.Context) error {
 	// get logged in user id
-	userID, err := helpers.GetUserId(c)
+	claims, err := helpers.GetClaims(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, utils.ErrInternalFailure)
 	}
 
 	// get bookings
-	bookings, err := h.Service.ShowUserBookings(userID)
+	bookings, err := h.Service.ShowUserBookings(claims.UserID)
 	if err != nil {
 		apiErr := utils.FromError(err)
 		return echo.NewHTTPError(apiErr.Status, apiErr.Message)

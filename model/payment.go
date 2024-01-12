@@ -1,7 +1,7 @@
 package model
 
 type Payment struct {
-	Payment_id     int     `json:"payment_id"`
+	Payment_id     int     `json:"payment_id" gorm:"primary_key"`
 	Booking_id     int     `json:"booking_id"`
 	Payment_date   string  `json:"payment_date"`
 	Payment_method string  `json:"payment_method" validate:"oneof=deposit xendit"`
@@ -12,7 +12,7 @@ type Payment struct {
 }
 
 type Deposit struct {
-	Deposit_id int     `json:"deposit_id"`
+	Deposit_id int     `json:"deposit_id" gorm:"primary_key"`
 	User_id    int     `json:"user_id"`
 	Amount     float32 `json:"amount"`
 	Status     string  `json:"status"`

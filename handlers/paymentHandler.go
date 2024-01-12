@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) PayBookingHandler(c echo.Context) error {
-	userID, err := helpers.GetUserId(c)
+	claims, err := helpers.GetClaims(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, utils.ErrInternalFailure)
 	}
@@ -28,7 +28,7 @@ func (h *Handler) PayBookingHandler(c echo.Context) error {
 	}
 
 	input.Booking_id = bookingID
-	input.User_id = userID
+	input.User_id = claims.UserID
 
 	payment, err := h.Service.PayBooking(input)
 	if err != nil {
@@ -43,12 +43,12 @@ func (h *Handler) PayBookingHandler(c echo.Context) error {
 }
 
 func (h *Handler) PaymentRefreshHandler(c echo.Context) error {
-	userID, err := helpers.GetUserId(c)
+	claims, err := helpers.GetClaims(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, utils.ErrInternalFailure)
 	}
 
-	payments, err := h.Service.PaymentRefresh(userID)
+	payments, err := h.Service.PaymentRefresh(claims.UserID)
 	if err != nil {
 		apiErr := utils.FromError(err)
 		return echo.NewHTTPError(apiErr.Status, apiErr.Message)

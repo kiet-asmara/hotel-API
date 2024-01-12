@@ -4,11 +4,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetUserId(c echo.Context) (int, error) {
+func GetClaims(c echo.Context) (*JWTClaim, error) {
 	token := c.Request().Header.Get("Authorization")
 	claims, err := DecodeToken(token)
 	if err != nil {
-		return 0, err
+		return &JWTClaim{}, err
 	}
-	return claims.UserID, nil
+	return claims, nil
 }

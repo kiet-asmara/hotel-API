@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"hotel/helpers"
 	"hotel/model"
 	"hotel/utils"
 	"strconv"
@@ -21,6 +22,11 @@ func (s *Service) PayBooking(input PaymentInput) (model.Payment, error) {
 	err := s.DB.Model(model.Booking{}).First(&booking, input.Booking_id).Error
 	if err != nil {
 		return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
+	}
+
+	// check if booking is paid
+	if booking.Paid {
+		return model.Payment{}, utils.NewError(utils.ErrBadRequest, fmt.Errorf("booking is already paid"))
 	}
 
 	// get user info
@@ -72,6 +78,9 @@ func (s *Service) PayBooking(input PaymentInput) (model.Payment, error) {
 
 		tx.Commit()
 
+		// send email
+		helpers.SendSuccessPayment(user.Email, payment)
+
 		return payment, nil
 	}
 
@@ -110,6 +119,9 @@ func (s *Service) PayBooking(input PaymentInput) (model.Payment, error) {
 			}
 			return model.Payment{}, utils.NewError(utils.ErrInternalFailure, err)
 		}
+
+		// send email
+		helpers.SendSuccessPayment(user.Email, payment)
 
 		return payment, nil
 
@@ -162,6 +174,9 @@ func (s *Service) PaymentRefresh(userID int) ([]model.Payment, error) {
 					return nil, utils.NewError(utils.ErrInternalFailure, err)
 				}
 				tx.Commit()
+
+				// send email
+				helpers.SendSuccessPayment(user.Email, v)
 			}
 		}
 	}

@@ -26,6 +26,10 @@ type UserInfo struct {
 	Deposit_amount float32 `json:"deposit_amount"`
 }
 
+type RoomInput struct {
+	Room_type_id int `json:"room_type_id" validate:"required"`
+}
+
 type RoomInfo struct {
 	Room_id      int  `json:"room_id" gorm:"primary_key"`
 	Room_type_id int  `json:"room_type_id"`

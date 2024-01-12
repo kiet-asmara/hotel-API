@@ -68,7 +68,7 @@ func (s *Service) Login(input LoginInput) (string, error) {
 	}
 
 	// generate JWT
-	token, err := helpers.GenerateJWT(existingUser.User_id)
+	token, err := helpers.GenerateJWT(existingUser.User_id, existingUser.User_type)
 	if err != nil {
 		return "", utils.NewError(utils.ErrInternalFailure, err)
 	}

@@ -11,15 +11,17 @@ import (
 
 // payload struct
 type JWTClaim struct {
-	UserID int `json:"id"`
+	UserID int `json:"ID"`
+	Role   int `json:"role"`
 	jwt.StandardClaims
 }
 
 // make jwt from payload
-func GenerateJWT(id int) (string, error) {
+func GenerateJWT(id int, role int) (string, error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 	claims := &JWTClaim{
 		UserID: id,
+		Role:   role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

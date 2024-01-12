@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) DepositHandler(c echo.Context) error {
-	userID, err := helpers.GetUserId(c)
+	claims, err := helpers.GetClaims(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, utils.ErrInternalFailure)
 	}
@@ -21,7 +21,7 @@ func (h *Handler) DepositHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, utils.ErrFailedBind)
 	}
 
-	invoice, err := h.Service.Deposit(input.Deposit_amount, userID)
+	invoice, err := h.Service.Deposit(input.Deposit_amount, claims.UserID)
 	if err != nil {
 		apiErr := utils.FromError(err)
 		return echo.NewHTTPError(apiErr.Status, apiErr.Message)
@@ -34,12 +34,12 @@ func (h *Handler) DepositHandler(c echo.Context) error {
 }
 
 func (h *Handler) DepositRefreshHandler(c echo.Context) error {
-	userID, err := helpers.GetUserId(c)
+	claims, err := helpers.GetClaims(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, utils.ErrInternalFailure)
 	}
 
-	depositHistory, totalDeposits, err := h.Service.DepositRefresh(userID)
+	depositHistory, totalDeposits, err := h.Service.DepositRefresh(claims.UserID)
 	if err != nil {
 		apiErr := utils.FromError(err)
 		return echo.NewHTTPError(apiErr.Status, apiErr.Message)

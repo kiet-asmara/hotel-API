@@ -34,7 +34,7 @@ CREATE TABLE bookings (
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,
     room_type_id INT NOT NULL REFERENCES room_types(room_type_id),
-    status BOOL NOT NULL DEFAULT TRUE
+    available BOOL NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE room_types (
@@ -52,8 +52,8 @@ CREATE TABLE payments (
     payment_method varchar(10) NOT NULL,
     amount  DECIMAL(10, 2) NOT NULL,
     status varchar(10) NOT NULL,
-    invoice_id VARCHAR(255) UNIQUE,
-    url VARCHAR(255) UNIQUE 
+    invoice_id VARCHAR(255) ,
+    url VARCHAR(255)  
 );
 
 INSERT INTO user_types (type_name) VALUES
