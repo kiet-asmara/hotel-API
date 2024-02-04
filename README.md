@@ -1,5 +1,5 @@
 # Hotel 626
-A hotel API mini-project made in ~24 hours.
+A hotel API mini-project.
 
 Made with Golang, PostgreSQL, GORM, and Echo.
 
